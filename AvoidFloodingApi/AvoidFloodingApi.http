@@ -1,0 +1,6 @@
+@AvoidFloodingApi_HostAddress = http://localhost:5187
+
+GET {{AvoidFloodingApi_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
