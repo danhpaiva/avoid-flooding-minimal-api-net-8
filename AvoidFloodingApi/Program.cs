@@ -27,6 +27,8 @@ app.MapPost("/localizacoes", async (Localizacao localizacao, AppDbContext db)
             return Results.Created($"/localizacoes/{localizacao.LocalizacaoId}", localizacao);
         });
 
+app.MapGet("localizacoes", async(AppDbContext db) => await db.Localizacoes.ToListAsync());
+
 // Configure the HTTP request pipeline. ("Configure")
 if (app.Environment.IsDevelopment())
 {
