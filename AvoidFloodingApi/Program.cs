@@ -17,7 +17,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 var app = builder.Build();
 
-app.MapGet("/", () => "Lista de Localizações");
+app.MapGet("/", () => "Lista de Localizações").ExcludeFromDescription();
 
 app.MapPost("/localizacoes", async (Localizacao localizacao, AppDbContext db)
     =>
@@ -28,6 +28,47 @@ app.MapPost("/localizacoes", async (Localizacao localizacao, AppDbContext db)
         });
 
 app.MapGet("localizacoes", async(AppDbContext db) => await db.Localizacoes.ToListAsync());
+
+app.MapGet("/localizacoes/{id:int}", async (int id, AppDbContext db)
+    =>
+{
+    return await db.Localizacoes.FindAsync(id)
+        is Localizacao localizacao
+        ? Results.Ok(localizacao)
+        : Results.NotFound();
+});
+
+app.MapPut("/localizacoes/{id:int}", async (int id, Localizacao localizacao, AppDbContext db) =>
+{
+    if (localizacao.LocalizacaoId != id)
+        return Results.BadRequest();
+
+    var localizacaoDb = await db.Localizacoes.FindAsync(id);
+
+    if (localizacaoDb is null) return Results.NotFound();
+
+    localizacaoDb.Nome = localizacao.Nome;
+    localizacaoDb.Latitude = localizacao.Latitude;
+    localizacaoDb.Longitude = localizacao.Longitude;
+    localizacaoDb.ProbabilidadeAlagamento = localizacao.ProbabilidadeAlagamento;
+    localizacaoDb.DataAtualizacao = localizacao.DataAtualizacao;
+
+    await db.SaveChangesAsync();
+
+    return Results.Ok(localizacaoDb);
+});
+
+app.MapDelete("/localizacoes/{id:int}", async (int id, AppDbContext db) =>
+{
+    var localizacao = await db.Localizacoes.FindAsync(id);
+
+    if (localizacao is null) return Results.NotFound();
+
+    db.Localizacoes.Remove(localizacao);
+    await db.SaveChangesAsync();
+
+    return Results.Ok();
+});
 
 // Configure the HTTP request pipeline. ("Configure")
 if (app.Environment.IsDevelopment())
